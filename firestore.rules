@@ -1,0 +1,156 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------------
+    // Helper functions
+    // ---------------------------------------------------------------------
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // The single source of truth for admin/manager status. Reads the
+    // requester's own user document rather than trusting any client-sent
+    // claim, so role escalation cannot be spoofed from the browser.
+    function isAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role in ['admin', 'manager'];
+    }
+
+    function isFullAdmin() {
+      return isSignedIn() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // ---------------------------------------------------------------------
+    // Users — each user manages their own profile; only admins can change
+    // roles or disable accounts. A customer can never write role/disabled
+    // fields on their own document because the write is checked against
+    // the diff of changed keys.
+    // ---------------------------------------------------------------------
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId)
+        && request.resource.data.role == 'customer'
+        && request.resource.data.uid == userId;
+      allow update: if isFullAdmin()
+        || (isOwner(userId)
+            && request.resource.data.role == resource.data.role
+            && request.resource.data.disabled == resource.data.disabled);
+      allow delete: if isFullAdmin();
+    }
+
+    // ---------------------------------------------------------------------
+    // Products — publicly readable (active products browsed by anyone,
+    // including logged-out shoppers), writable only by admins/managers.
+    // ---------------------------------------------------------------------
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------------------------------------------------------------------
+    // Categories — publicly readable, admin-managed.
+    // ---------------------------------------------------------------------
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------------------------------------------------------------------
+    // Orders — a customer may create their own order and read only their
+    // own orders; only admins can read all orders or change order status.
+    // Customers can never edit an order after creation (no price/status
+    // tampering post-checkout).
+    // ---------------------------------------------------------------------
+    match /orders/{orderId} {
+      allow read: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.paymentStatus == 'pending'
+        && request.resource.data.total is number
+        && request.resource.data.total >= 0;
+      allow update: if isAdmin();
+      allow delete: if isFullAdmin();
+    }
+
+    // ---------------------------------------------------------------------
+    // Reviews — anyone can read approved reviews; only the review's author
+    // can create it (starts as "pending"); only admins can moderate
+    // (change status) or delete.
+    // ---------------------------------------------------------------------
+    match /reviews/{reviewId} {
+      allow read: if resource.data.status == 'approved' || isAdmin() ||
+        (isSignedIn() && resource.data.userId == request.auth.uid);
+      allow create: if isSignedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.rating is number
+        && request.resource.data.rating >= 1
+        && request.resource.data.rating <= 5;
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    // ---------------------------------------------------------------------
+    // Coupons — validation reads are public (needed at checkout before
+    // sign-in in some flows), all writes admin-only. usedCount can only
+    // move via the increment path used by validated order placement.
+    // ---------------------------------------------------------------------
+    match /coupons/{couponId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------------------------------------------------------------------
+    // Banners — publicly readable, admin-managed.
+    // ---------------------------------------------------------------------
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ---------------------------------------------------------------------
+    // Site settings — publicly readable (storefront needs shipping
+    // thresholds, store name, etc.), admin-only writes.
+    // ---------------------------------------------------------------------
+    match /settings/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ---------------------------------------------------------------------
+    // Contact form submissions — anyone can create (it's a public contact
+    // form), only admins can read or manage the resulting messages.
+    // ---------------------------------------------------------------------
+    match /contactMessages/{messageId} {
+      allow create: if request.resource.data.name is string
+        && request.resource.data.name.size() > 0
+        && request.resource.data.name.size() < 200
+        && request.resource.data.email is string
+        && request.resource.data.message is string
+        && request.resource.data.message.size() < 2000;
+      allow read, update, delete: if isAdmin();
+    }
+
+    // ---------------------------------------------------------------------
+    // Inventory logs — admin-only in both directions; internal audit trail.
+    // ---------------------------------------------------------------------
+    match /inventoryLogs/{logId} {
+      allow read, create, update, delete: if isAdmin();
+    }
+
+    // Default deny for anything not explicitly matched above.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

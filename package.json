@@ -1,0 +1,42 @@
+{
+  "name": "shopease",
+  "version": "1.0.0",
+  "private": true,
+  "description": "ShopEase - A production-ready multi-category eCommerce platform built with Next.js, Tailwind CSS, and Firebase.",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "export": "next build",
+    "seed": "node --loader ts-node/esm scripts/seed.ts",
+    "deploy": "npm run build && firebase deploy"
+  },
+  "dependencies": {
+    "next": "14.2.5",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "firebase": "10.12.4",
+    "lucide-react": "0.417.0",
+    "clsx": "2.1.1",
+    "zustand": "4.5.4",
+    "react-hot-toast": "2.4.1",
+    "nanoid": "5.0.7"
+  },
+  "devDependencies": {
+    "typescript": "5.5.4",
+    "@types/node": "20.14.11",
+    "@types/react": "18.3.3",
+    "@types/react-dom": "18.3.0",
+    "autoprefixer": "10.4.19",
+    "postcss": "8.4.40",
+    "tailwindcss": "3.4.6",
+    "eslint": "8.57.0",
+    "eslint-config-next": "14.2.5",
+    "ts-node": "10.9.2",
+    "firebase-tools": "13.13.1"
+  },
+  "engines": {
+    "node": ">=18.17.0"
+  }
+}
