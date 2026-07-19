@@ -1,0 +1,17 @@
+{
+  "name": "ShopEase — Online Shopping",
+  "short_name": "ShopEase",
+  "description": "Shop electronics, fashion, home goods, beauty products, and more.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1f7358",
+  "icons": [
+    {
+      "src": "/logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
