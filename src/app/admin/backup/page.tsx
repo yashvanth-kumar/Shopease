@@ -66,7 +66,7 @@ export default function AdminBackupPage() {
       let imported = 0;
       if (Array.isArray(backup.data.categories)) {
         for (const cat of backup.data.categories) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          // eslint-disable-next-line no-unused-vars
           const { id, createdAt, updatedAt, ...rest } = cat;
           await createCategory(rest);
           imported++;
@@ -74,7 +74,7 @@ export default function AdminBackupPage() {
       }
       if (Array.isArray(backup.data.products)) {
         for (const product of backup.data.products) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          // eslint-disable-next-line no-unused-vars
           const { id, createdAt, updatedAt, ...rest } = product;
           await createProduct(rest);
           imported++;
@@ -82,7 +82,7 @@ export default function AdminBackupPage() {
       }
       if (Array.isArray(backup.data.coupons)) {
         for (const coupon of backup.data.coupons) {
-          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          // eslint-disable-next-line no-unused-vars
           const { id, usedCount, createdAt, ...rest } = coupon;
           await createCoupon(rest);
           imported++;
