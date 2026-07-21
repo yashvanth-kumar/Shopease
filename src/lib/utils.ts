@@ -28,7 +28,7 @@ export function formatDate(timestamp: number | { seconds: number } | undefined) 
     typeof timestamp === "number"
       ? timestamp
       : (timestamp as { seconds: number }).seconds * 1000;
-  return new Date(ms).toLocaleDateString("en-US", {
+  return new Date(ms).toLocaleDateString("en-IN", {
     year: "numeric",
     month: "short",
     day: "numeric",
