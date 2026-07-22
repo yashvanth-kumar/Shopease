@@ -35,35 +35,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setProfile(p);
   }
 
-  useEffect(() => {
+   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges(async (user) => {
-  setFirebaseUser(user);
+      setFirebaseUser(user);
 
-  try {
-    await loadProfile(user);
-  } catch (error) {
-    console.error("Failed to load profile:", error);
-    setProfile(null);
-  } finally {
-    setLoading(false);
-  }
-});
+      try {
+        await loadProfile(user);
+      } catch (error) {
+        console.error("Failed to load profile:", error);
+        setProfile(null);
+      } finally {
+        setLoading(false);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       firebaseUser,
       profile,
       loading,
-      // Role is sourced only from the Firestore profile document, never from
-      // client-editable local state, since Firestore rules are the real
-      // enforcement point for admin-only reads/writes.
       isAdmin: profile?.role === "admin" || profile?.role === "manager",
       refreshProfile: () => loadProfile(firebaseUser),
     }),
     [firebaseUser, profile, loading]
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth() {
