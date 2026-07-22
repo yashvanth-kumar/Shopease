@@ -8,6 +8,8 @@ import {
   query,
   serverTimestamp,
   updateDoc,
+  getDoc,
+  setDoc,
 } from "firebase/firestore";
 import { db } from "./config";
 import type { Address, UserProfile, UserRole } from "@/types";
@@ -20,27 +22,62 @@ export async function getAllUsersForAdmin(): Promise<UserProfile[]> {
   return snap.docs.map((d) => d.data() as UserProfile);
 }
 
-/**
- * Changes a user's role. This must only ever be invoked from the admin
- * panel by an already-authenticated admin — Firestore security rules
- * independently enforce that only admins can write the `role` field, so
- * even if this function were called maliciously from a compromised client,
- * the write would be rejected server-side.
- */
 export async function setUserRole(uid: string, role: UserRole) {
-  await updateDoc(doc(db, USERS, uid), { role, updatedAt: serverTimestamp() });
+  await updateDoc(doc(db, USERS, uid), {
+    role,
+    updatedAt: serverTimestamp(),
+  });
 }
 
 export async function setUserDisabled(uid: string, disabled: boolean) {
-  await updateDoc(doc(db, USERS, uid), { disabled, updatedAt: serverTimestamp() });
+  await updateDoc(doc(db, USERS, uid), {
+    disabled,
+    updatedAt: serverTimestamp(),
+  });
 }
 
-export async function updateUserProfile(uid: string, changes: Partial<UserProfile>) {
-  await updateDoc(doc(db, USERS, uid), { ...changes, updatedAt: serverTimestamp() });
+export async function updateUserProfile(
+  uid: string,
+  changes: Partial<UserProfile>
+) {
+  const ref = doc(db, USERS, uid);
+  const snap = await getDoc(ref);
+
+  if (snap.exists()) {
+    await updateDoc(ref, {
+      ...changes,
+      updatedAt: serverTimestamp(),
+    });
+  } else {
+    await setDoc(ref, {
+      uid,
+      ...changes,
+      role: "user",
+      wishlist: [],
+      addresses: [],
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+  }
 }
 
 export async function addUserAddress(uid: string, address: Address) {
-  await updateDoc(doc(db, USERS, uid), {
+  const ref = doc(db, USERS, uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      uid,
+      role: "user",
+      wishlist: [],
+      addresses: [address],
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    return;
+  }
+
+  await updateDoc(ref, {
     addresses: arrayUnion(address),
     updatedAt: serverTimestamp(),
   });
@@ -53,9 +90,30 @@ export async function removeUserAddress(uid: string, address: Address) {
   });
 }
 
-export async function toggleWishlist(uid: string, productId: string, isInWishlist: boolean) {
-  await updateDoc(doc(db, USERS, uid), {
-    wishlist: isInWishlist ? arrayRemove(productId) : arrayUnion(productId),
+export async function toggleWishlist(
+  uid: string,
+  productId: string,
+  isInWishlist: boolean
+) {
+  const ref = doc(db, USERS, uid);
+  const snap = await getDoc(ref);
+
+  if (!snap.exists()) {
+    await setDoc(ref, {
+      uid,
+      role: "user",
+      wishlist: [productId],
+      addresses: [],
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    });
+    return;
+  }
+
+  await updateDoc(ref, {
+    wishlist: isInWishlist
+      ? arrayRemove(productId)
+      : arrayUnion(productId),
     updatedAt: serverTimestamp(),
   });
-}
+      }
