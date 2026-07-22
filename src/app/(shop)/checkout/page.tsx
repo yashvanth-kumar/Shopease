@@ -150,12 +150,21 @@ export default function CheckoutPage() {
       clearCart();
       toast.success(`Order ${orderNumber} placed successfully!`);
       router.push(`/order-success/${id}`);
-    } catch {
-      toast.error("Failed to place order. Please try again.");
-    } finally {
-      setPlacing(false);
-    }
+   } catch (error) {
+  console.error("ORDER ERROR:", error);
+
+  if (error instanceof Error) {
+    console.error(error.message);
+    alert(error.message);
+    toast.error(error.message);
+  } else {
+    console.error(error);
+    alert("Unknown error occurred");
+    toast.error("Failed to place order. Please try again.");
   }
+} finally {
+  setPlacing(false);
+        }
 
   if (lines.length === 0) {
     return (
