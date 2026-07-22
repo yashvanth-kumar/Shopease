@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
    useEffect(() => {
     const unsubscribe = subscribeToAuthChanges(async (user) => {
-      setFirebaseUser(user)
+      setFirebaseUser(user);
 
       try {
         await loadProfile(user);
