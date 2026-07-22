@@ -37,12 +37,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = subscribeToAuthChanges(async (user) => {
-      setFirebaseUser(user);
-      await loadProfile(user);
-      setLoading(false);
-    });
-    return () => unsubscribe();
-  }, []);
+  setFirebaseUser(user);
+
+  try {
+    await loadProfile(user);
+  } catch (error) {
+    console.error("Failed to load profile:", error);
+    setProfile(null);
+  } finally {
+    setLoading(false);
+  }
+});
 
   const value = useMemo<AuthContextValue>(
     () => ({
