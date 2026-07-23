@@ -36,10 +36,16 @@ export async function createOrder(
   });
   await updateDoc(ref, { id: ref.id });
 
-  // Decrement stock for each purchased line item.
+  // Update stock (don't fail the order if stock update fails)
+try {
   await Promise.all(
-    order.items.map((item) => adjustProductStock(item.productId, -item.quantity))
+    order.items.map((item) =>
+      adjustProductStock(item.productId, -item.quantity)
+    )
   );
+} catch (err) {
+  console.error("Stock update failed:", err);
+}
 
   return { id: ref.id, orderNumber };
 }
