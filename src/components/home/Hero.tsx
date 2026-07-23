@@ -8,7 +8,7 @@ export default function Hero() {
       <div className="container-page grid gap-8 py-14 sm:py-20 lg:grid-cols-2 lg:items-center lg:py-24">
         <div className="animate-slideUp text-white">
           <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-semibold tracking-wide text-brand-100">
-            Free shipping on orders over $50
+            Free shipping on orders over ₹299
           </span>
           <h1 className="mt-4 font-display text-3xl font-bold leading-tight sm:text-4xl lg:text-5xl">
             Everything you need,
