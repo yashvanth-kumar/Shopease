@@ -1,19 +1,30 @@
-import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import RequireAdmin from "@/components/admin/RequireAdmin";
 import AdminSidebar from "@/components/admin/AdminSidebar";
+import AdminNavbar from "@/components/admin/AdminNavbar";
 
-export const metadata: Metadata = {
-  title: "Admin Dashboard",
-  robots: { index: false, follow: false },
-};
+interface AdminLayoutProps {
+  children: ReactNode;
+}
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({
+  children,
+}: AdminLayoutProps) {
   return (
     <RequireAdmin>
-      <div className="flex">
-        <AdminSidebar />
-        <div className="min-w-0 flex-1 bg-ink-50">
-          <div className="p-4 sm:p-6 lg:p-8">{children}</div>
+      <div className="min-h-screen bg-slate-100">
+        <div className="flex">
+          {/* Sidebar */}
+          <AdminSidebar />
+
+          {/* Main */}
+          <div className="flex flex-1 flex-col lg:ml-64">
+            <AdminNavbar />
+
+            <main className="flex-1 p-6">
+              {children}
+            </main>
+          </div>
         </div>
       </div>
     </RequireAdmin>
