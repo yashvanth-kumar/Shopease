@@ -38,7 +38,7 @@ export default function AdminSidebar() {
   const pathname = usePathname();
 
   return (
-    <aside className="hidden w-60 shrink-0 border-r border-ink-100 bg-white lg:block">
+    <aside className="w-64 min-h-screen border-r border-gray-200 bg-white">
       <div className="sticky top-16 flex h-[calc(100vh-4rem)] flex-col p-4">
         <nav className="flex-1 space-y-1">
           {NAV_ITEMS.map((item) => {
