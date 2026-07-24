@@ -56,8 +56,8 @@ export default function ProductFormModal({
       return;
     }
 
-    const cloudName = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME;
-    const uploadPreset = process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET;
+    const cloudName = "j9ks4gjd";
+const uploadPreset = "shopease_upload";
 
     if (!cloudName || !uploadPreset) {
       toast.error("Image upload is not configured. Please set Cloudinary env variables.");
