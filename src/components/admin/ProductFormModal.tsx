@@ -57,7 +57,7 @@ export default function ProductFormModal({
     }
 
     const cloudName = "j9ks4gjd";
-const uploadPreset = "shopease_upload";
+    const uploadPreset = "shopease_upload";
 
     if (!cloudName || !uploadPreset) {
       toast.error("Image upload is not configured. Please set Cloudinary env variables.");
@@ -80,8 +80,11 @@ const uploadPreset = "shopease_upload";
       );
 
       if (!response.ok) {
-        throw new Error("Cloudinary upload failed");
-      }
+      const error = await response.json();
+      console.log(error);
+      alert(JSON.stringify(error));
+      throw new Error(JSON.stringify(error));
+        }
 
       const data = await response.json();
       const url: string | undefined = data?.secure_url;
