@@ -80,11 +80,11 @@ export default function ProductFormModal({
       );
 
       if (!response.ok) {
-      const error = await response.json();
-      console.log(error);
-      alert(JSON.stringify(error));
-      throw new Error(JSON.stringify(error));
-        }
+        const error = await response.json();
+        console.log(error);
+        alert(JSON.stringify(error));
+        throw new Error(JSON.stringify(error));
+      }
 
       const data = await response.json();
       const url: string | undefined = data?.secure_url;
