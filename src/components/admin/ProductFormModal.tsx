@@ -8,6 +8,9 @@ import { categoriesSeed, withTimestamps } from "@/data/categories";
 import { slugify, sanitizeInput } from "@/lib/utils";
 import type { Product } from "@/types";
 
+const cloudName = "j9ks4gjd";
+const uploadPreset = "shopease_upload";
+
 export default function ProductFormModal({
   product,
   onClose,
@@ -44,81 +47,53 @@ export default function ProductFormModal({
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-  const file = e.target.files?.[0];
-  if (!file) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-  const cloudName = "j9ks4gjd";
-  const uploadPreset = "shopease_upload";
-
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("upload_preset", uploadPreset);
-
-  try {
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/₹{cloudName}/image/upload`,
-      {
-        method: "POST",
-        body: formData,
-      }
-    );
-
-    const data = await response.json();
-
-    alert(JSON.stringify(data));
-
-    if (!response.ok) {
-      throw new Error(data.error?.message || "Upload failed");
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload a valid image file.");
+      e.target.value = "";
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("Image must be smaller than 5MB.");
+      e.target.value = "";
+      return;
     }
 
-    setImages((prev) => [...prev, data.secure_url]);
-    toast.success("Uploaded");
-  } catch (err: any) {
-    alert(err.message);
-    console.error(err);
-  }
-  }
-
     setUploading(true);
-    const uploadToast = toast.loading("Uploading...");
     try {
       const formData = new FormData();
       formData.append("file", file);
       formData.append("upload_preset", uploadPreset);
-      
-      console.log("Cloud Name:", cloudName);
-      console.log("Upload Preset:", uploadPreset);
-      
-      for (const pair of formData.entries()) {
-        console.log(pair[0], pair[1]);
-      }
-      
+
       const response = await fetch(
-  `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-  {
-    method: "POST",
-    body: formData,
-  }
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
       );
-      
-      if (!response.ok) {
-        const error = await response.json();
-        console.log(error);
-        alert(JSON.stringify(error));
-        throw new Error(JSON.stringify(error));
-      }
 
       const data = await response.json();
-      const url: string | undefined = data?.secure_url;
 
-      if (!url) {
-        throw new Error("No secure_url returned from Cloudinary");
+      if (!response.ok) {
+        console.error("Cloudinary upload failed:", data);
+        alert(JSON.stringify(data));
+        throw new Error(data?.error?.message || "Image upload failed.");
       }
 
-      setImages((prev) => [...prev, url]);
-      toast.success("Image uploaded", { id: uploadToast });
-    } catch {
-      toast.error("Failed to upload image. Please try again.", { id: uploadToast });
+      if (!data.secure_url) {
+        console.error("Cloudinary response missing secure_url:", data);
+        alert(JSON.stringify(data));
+        throw new Error(data?.error?.message || "Image upload failed.");
+      }
+
+      setImages((prev) => [...prev, data.secure_url as string]);
+      toast.success("Image uploaded");
+    } catch (err) {
+      console.error("Image upload error:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to upload image. Please try again.");
     } finally {
       setUploading(false);
       e.target.value = "";
@@ -178,7 +153,8 @@ export default function ProductFormModal({
         toast.success("Product created");
       }
       onSaved();
-    } catch {
+    } catch (err) {
+      console.error("Save product error:", err);
       toast.error("Failed to save product. Please try again.");
     } finally {
       setSaving(false);
@@ -301,4 +277,4 @@ export default function ProductFormModal({
       </div>
     </div>
   );
-}
+      }
