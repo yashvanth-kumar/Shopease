@@ -209,6 +209,12 @@ export async function adjustProductStock(id: string, delta: number) {
   });
 }
 
+export async function getAllActiveProducts(): Promise<Product[]> {
+  const q = query(collection(db, PRODUCTS), where("isActive", "==", true));
+  const snap = await getDocs(q);
+  return snap.docs.map((d) => d.data() as Product);
+}
+
 export async function getAllProductsForAdmin(): Promise<Product[]> {
   const snap = await getDocs(query(collection(db, PRODUCTS), orderBy("updatedAt", "desc")));
   return snap.docs.map((d) => d.data() as Product);
