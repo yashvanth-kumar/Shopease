@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { productsSeed } from "@/data/products";
+import { getProductBySlug, getRelatedProducts } from "@/lib/firebase/products";
 import ProductGallery from "@/components/product/ProductGallery";
 import AddToCartPanel from "@/components/product/AddToCartPanel";
 import StarRating from "@/components/ui/StarRating";
@@ -15,16 +15,14 @@ interface Props {
   params: { slug: string };
 }
 
-function getProduct(slug: string) {
-  return productsSeed.find((p) => p.slug === slug && p.isActive);
-}
+// New products can be added anytime via the admin panel, so this route
+// can't be statically pre-generated at build time — render on request
+// instead and cache briefly.
+export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
-export function generateStaticParams() {
-  return productsSeed.map((p) => ({ slug: p.slug }));
-}
-
-export function generateMetadata({ params }: Props): Metadata {
-  const product = getProduct(params.slug);
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const product = await getProductBySlug(params.slug);
   if (!product) return { title: "Product Not Found" };
   return {
     title: product.seoTitle || product.title,
@@ -38,13 +36,11 @@ export function generateMetadata({ params }: Props): Metadata {
   };
 }
 
-export default function ProductDetailPage({ params }: Props) {
-  const product = getProduct(params.slug);
+export default async function ProductDetailPage({ params }: Props) {
+  const product = await getProductBySlug(params.slug);
   if (!product) notFound();
 
-  const related = productsSeed
-    .filter((p) => p.categorySlug === product.categorySlug && p.id !== product.id && p.isActive)
-    .slice(0, 6);
+  const related = await getRelatedProducts(product, 6);
 
   const discount = calculateDiscountPercent(product.price, product.compareAtPrice);
 
@@ -178,4 +174,4 @@ export default function ProductDetailPage({ params }: Props) {
       <RecentlyViewedSection excludeId={product.id} />
     </div>
   );
-                                  }
+}
