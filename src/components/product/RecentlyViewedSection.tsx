@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRecentlyViewedStore } from "@/context/recentlyViewedStore";
-import { productsSeed } from "@/data/products";
+import { getProductsByIds } from "@/lib/firebase/products";
 import ProductCard from "@/components/product/ProductCard";
 import type { Product } from "@/types";
 
@@ -12,12 +12,20 @@ export default function RecentlyViewedSection({ excludeId }: { excludeId?: strin
 
   useEffect(() => {
     const ids = productIds.filter((id) => id !== excludeId).slice(0, 6);
-    // In production this would call getProductsByIds() against Firestore;
-    // local seed lookup here keeps the demo fast and dependency-free.
-    const found = ids
-      .map((id) => productsSeed.find((p) => p.id === id))
-      .filter((p): p is Product => Boolean(p));
-    setProducts(found);
+    if (ids.length === 0) {
+      setProducts([]);
+      return;
+    }
+    getProductsByIds(ids)
+      .then((found) => {
+        // Preserve the most-recently-viewed-first order from the store,
+        // since Firestore's "in" query doesn't guarantee result ordering.
+        const ordered = ids
+          .map((id) => found.find((p) => p.id === id))
+          .filter((p): p is Product => Boolean(p));
+        setProducts(ordered);
+      })
+      .catch(() => setProducts([]));
   }, [productIds, excludeId]);
 
   if (products.length === 0) return null;
