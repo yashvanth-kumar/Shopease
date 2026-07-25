@@ -44,25 +44,40 @@ export default function ProductFormModal({
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const file = e.target.files?.[0];
+  if (!file) return;
 
-    if (!file.type.startsWith("image/")) {
-      toast.error("Please upload a valid image file.");
-      return;
-    }
-    if (file.size > 5 * 1024 * 1024) {
-      toast.error("Image must be smaller than 5MB.");
-      return;
+  const cloudName = "j9ks4gjd";
+  const uploadPreset = "shopease_upload";
+
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("upload_preset", uploadPreset);
+
+  try {
+    const response = await fetch(
+      `https://api.cloudinary.com/v1_1/₹{cloudName}/image/upload`,
+      {
+        method: "POST",
+        body: formData,
+      }
+    );
+
+    const data = await response.json();
+
+    alert(JSON.stringify(data));
+
+    if (!response.ok) {
+      throw new Error(data.error?.message || "Upload failed");
     }
 
-    const cloudName = "j9ks4gjd";
-    const uploadPreset = "shopease_upload";
-
-    if (!cloudName || !uploadPreset) {
-      toast.error("Image upload is not configured. Please set Cloudinary env variables.");
-      return;
-    }
+    setImages((prev) => [...prev, data.secure_url]);
+    toast.success("Uploaded");
+  } catch (err: any) {
+    alert(err.message);
+    console.error(err);
+  }
+  }
 
     setUploading(true);
     const uploadToast = toast.loading("Uploading...");
