@@ -70,14 +70,13 @@ export default function ProductFormModal({
       const formData = new FormData();
       formData.append("file", file);
       formData.append("upload_preset", uploadPreset);
+      console.log("Cloud Name:", cloudName);
+      console.log("Upload Preset:", uploadPreset);
+      for (const pair of formData.entries()) {
+        console.log(pair[0], pair[1]);
+      }
 
-      const response = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
+const response = await fetch(
 
       if (!response.ok) {
         const error = await response.json();
