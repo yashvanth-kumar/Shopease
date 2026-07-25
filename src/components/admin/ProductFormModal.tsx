@@ -68,7 +68,7 @@ export default function ProductFormModal({
       formData.append("upload_preset", uploadPreset);
 
       const response = await fetch(
-        `https://api.cloudinary.com/v1_1/₹{cloudName}/image/upload`,
+        `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
         {
           method: "POST",
           body: formData,
