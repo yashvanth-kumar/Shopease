@@ -8,6 +8,7 @@ const nextConfig = {
       { protocol: "https", hostname: "images.unsplash.com" },
       { protocol: "https", hostname: "firebasestorage.googleapis.com" },
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
+      { protocol: "https", hostname: "res.cloudinary.com" },
     ],
     minimumCacheTTL: 86400,
   },
@@ -25,7 +26,7 @@ const nextConfig = {
           {
             key: "Content-Security-Policy",
             value:
-              "default-src 'self'; img-src 'self' data: https://images.unsplash.com https://firebasestorage.googleapis.com https://lh3.googleusercontent.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://www.googleapis.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com; frame-src 'self' https://*.firebaseapp.com;",
+              "default-src 'self'; img-src 'self' data: https://images.unsplash.com https://firebasestorage.googleapis.com https://lh3.googleusercontent.com https://res.cloudinary.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.gstatic.com https://www.googleapis.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.googleapis.com https://*.firebaseio.com wss://*.firebaseio.com https://firestore.googleapis.com https://api.cloudinary.com; frame-src 'self' https://*.firebaseapp.com;",
           },
         ],
       },
