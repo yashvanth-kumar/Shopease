@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Upload, Loader2 } from "lucide-react";
 import toast from "react-hot-toast";
 import { createProduct, updateProduct } from "@/lib/firebase/products";
-import { categoriesSeed, withTimestamps } from "@/data/categories";
+import { getAllCategories } from "@/lib/firebase/categories";
 import { slugify, sanitizeInput } from "@/lib/utils";
-import type { Product } from "@/types";
+import type { Category, Product } from "@/types";
 
 const cloudName = "j9ks4gjd";
 const uploadPreset = "shopease_upload";
@@ -20,13 +20,29 @@ export default function ProductFormModal({
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const categories = withTimestamps(categoriesSeed);
   const isEdit = !!product;
+
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
+
+  useEffect(() => {
+    getAllCategories()
+      .then((cats) => {
+        setCategories(cats);
+        setForm((f) => ({
+          ...f,
+          categoryId: f.categoryId || product?.categoryId || cats[0]?.id || "",
+        }));
+      })
+      .catch(() => toast.error("Failed to load categories."))
+      .finally(() => setCategoriesLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const [form, setForm] = useState({
     title: product?.title ?? "",
     brand: product?.brand ?? "",
-    categoryId: product?.categoryId ?? categories[0]?.id ?? "",
+    categoryId: product?.categoryId ?? "",
     price: product?.price ?? 0,
     compareAtPrice: product?.compareAtPrice ?? 0,
     sku: product?.sku ?? "",
@@ -211,7 +227,16 @@ export default function ProductFormModal({
             </div>
             <div>
               <label className="mb-1.5 block text-sm font-medium text-ink-700">Category *</label>
-              <select value={form.categoryId} onChange={(e) => updateField("categoryId", e.target.value)} className="input-field">
+              <select
+                value={form.categoryId}
+                onChange={(e) => updateField("categoryId", e.target.value)}
+                className="input-field"
+                disabled={categoriesLoading}
+              >
+                {categoriesLoading && <option value="">Loading categories...</option>}
+                {!categoriesLoading && categories.length === 0 && (
+                  <option value="">No categories found — add one first</option>
+                )}
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>{c.name}</option>
                 ))}
@@ -277,4 +302,4 @@ export default function ProductFormModal({
       </div>
     </div>
   );
-      }
+    }
