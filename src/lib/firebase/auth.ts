@@ -7,6 +7,8 @@ import {
   updateProfile,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   onAuthStateChanged,
   type User,
 } from "firebase/auth";
@@ -60,29 +62,37 @@ export async function loginUser(email: string, password: string) {
 
 export async function loginWithGoogle() {
   const provider = new GoogleAuthProvider();
+
+  if (/Android|iPhone|iPad|Mobile/i.test(navigator.userAgent)) {
+    await signInWithRedirect(auth, provider);
+    return null;
+  }
+
   const credential = await signInWithPopup(auth, provider);
 
   const userRef = doc(db, "users", credential.user.uid);
   const existing = await getDoc(userRef);
 
   if (!existing.exists()) {
-    const profile = {
+    await setDoc(userRef, {
       uid: credential.user.uid,
       email: credential.user.email ?? "",
       displayName: credential.user.displayName ?? "Customer",
       photoURL: credential.user.photoURL ?? "",
-      role: "customer" as const,
+      role: "customer",
       emailVerified: credential.user.emailVerified,
       wishlist: [],
       addresses: [],
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
-    };
-
-    await setDoc(userRef, profile);
+    });
   }
 
   return credential.user;
+}
+
+export async function finishGoogleRedirect() {
+  return await getRedirectResult(auth);
 }
 
 export async function logoutUser() {
@@ -113,4 +123,4 @@ export async function getUserProfile(
   }
 
   return snap.data() as UserProfile;
-    }
+      }
