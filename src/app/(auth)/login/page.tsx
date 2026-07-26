@@ -56,10 +56,17 @@ async function handleGoogleLogin() {
     await loginWithGoogle();
     toast.success("Welcome!");
     router.push("/");
-  } catch (err) {
-    console.error(err);
-    alert(JSON.stringify(err));
-    toast.error("Google sign-in failed.");
+  } catch (err: any) {
+  console.error("FULL ERROR:", err);
+  alert(
+    JSON.stringify({
+      code: err?.code,
+      message: err?.message,
+      customData: err?.customData,
+      stack: err?.stack,
+    })
+  );
+  toast.error("Google sign-in failed.");
   } finally {
     setLoading(false);
   }
