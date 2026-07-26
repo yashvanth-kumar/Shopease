@@ -52,17 +52,20 @@ export default function LoginPage() {
 
 async function handleGoogleLogin() {
   setLoading(true);
-
   try {
-    const user = await loginWithGoogle();
-
-    console.log("Logged in:", user);
-
+    await loginWithGoogle();
     toast.success("Welcome!");
-
-    window.location.href = "/";
+    router.push("/");
   } catch (err: any) {
-    console.error(err);
+    console.error("FULL ERROR:", err);
+    alert(
+      JSON.stringify({
+        code: err?.code,
+        message: err?.message,
+        customData: err?.customData,
+        stack: err?.stack,
+      })
+    );
     toast.error("Google sign-in failed.");
   } finally {
     setLoading(false);
