@@ -50,19 +50,20 @@ export default function LoginPage() {
     }
   }
 
-  async function handleGoogleLogin() {
-    setLoading(true);
-    try {
-      await loginWithGoogle();
-      toast.success("Welcome!");
-      router.push("/");
-    } catch {
-      toast.error("Google sign-in failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+async function handleGoogleLogin() {
+  setLoading(true);
+  try {
+    await loginWithGoogle();
+    toast.success("Welcome!");
+    router.push("/");
+  } catch (err) {
+    console.error(err);
+    alert(JSON.stringify(err));
+    toast.error("Google sign-in failed.");
+  } finally {
+    setLoading(false);
   }
-
+            }
   return (
     <AuthShell
       title="Welcome back"
