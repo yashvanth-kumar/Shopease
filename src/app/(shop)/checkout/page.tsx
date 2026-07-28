@@ -12,8 +12,8 @@ import { formatCurrency, isValidEmail, sanitizeInput } from "@/lib/utils";
 import { checkRateLimit } from "@/lib/rateLimit";
 import type { Address } from "@/types";
 
-const FREE_SHIPPING_THRESHOLD = 50;
-const FLAT_SHIPPING_FEE = 4.99;
+const FREE_SHIPPING_THRESHOLD = 299;
+const FLAT_SHIPPING_FEE = 50;
 
 export default function CheckoutPage() {
   const router = useRouter();
