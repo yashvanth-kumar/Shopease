@@ -34,7 +34,7 @@ export default function CheckoutPage() {
   });
 
   const cartSubtotal = subtotal();
-  const shippingFee = cartSubtotal <= FREE_SHIPPING_THRESHOLD || cartSubtotal === 0 ? 0 : FLAT_SHIPPING_FEE;
+  const shippingFee = cartSubtotal >= FREE_SHIPPING_THRESHOLD || cartSubtotal === 299 ? 0 : FLAT_SHIPPING_FEE;
   // Discount is re-derived from the coupon here (and again right before order
   // placement) rather than trusted from earlier cart-page state, since the
   // true discount amount must be computed against the current subtotal.
